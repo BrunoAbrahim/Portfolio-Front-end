@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Produtos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            color: #ffffff;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .catalog {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            padding: 20px;
+        }
+
+        .product {
+            width: 200px;
+            padding: 10px;
+            margin: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        .cart {
+            background-color: #fff;
+            padding: 20px;
+            margin: 20px;
+            border: 1px solid #ddd;
+        }
+
+        #cart-items {
+            list-style: none;
+            padding: 0;
+        }
+
+        #cart-total {
+            font-weight: bold;
+        }
+
+        .checkout-button {
+            margin-top: 10px;
+        }
+
+        .checkout-form {
+            margin-top: 20px;
+        }
+
+        .checkout-form input {
+            display: block;
+            margin-bottom: 10px;
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        .checkout-button-confirm {
+            margin-top: 10px;
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Meu Mercadin - Catalogo</h1>
+    </header>
+    <main>
+        <section class="catalog">
+            <!-- Os produtos adicionados serão exibidos aqui -->
+        </section>
+        <aside class="cart">
+            <!-- Carrinho de compras -->
+            <h2>Meu Carrinho</h2>
+            <ul id="cart-items">
+                <!-- Itens do carrinho serão adicionados aqui -->
+            </ul>
+            <p>Total: R$ <span id="cart-total">0.00</span></p>
+            <button onclick="checkout()" class="checkout-button">Finalizar Compra</button>
+            <div class="checkout-form" style="display: none;">
+                <h3>Informações de Compra</h3>
+                <input type="text" id="customer-name" placeholder="Nome">
+                <input type="text" id="customer-cpf" placeholder="CPF">
+                <input type="text" id="customer-address" placeholder="Endereço">
+                <button onclick="confirmPurchase()" class="checkout-button-confirm">Confirmar Compra</button>
+            </div>
+        </aside>
+    </main>
+    <footer>
+        <p>© 2024 Mercadinho Digital. Todos os direitos reservados.</p>
+    </footer>
+    <script>
+        let products = JSON.parse(localStorage.getItem('products')) || [];
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let total = 0;
+
+        function displayProducts() {
+            const catalog = document.querySelector('.catalog');
+            catalog.innerHTML = '';
+            products.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product';
+                productDiv.innerHTML = `
+                    <h3>${product.name}</h3>
+                    <p>${product.description}</p>
+                    <p>Preço: R$ ${product.price}</p>
+                    <button onclick="addToCart(${product.id})">Adicionar ao Carrinho</button>
+                `;
+                catalog.appendChild(productDiv);
+            });
+        }
+
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            cart.push(product);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            displayCart();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            displayCart();
+        }
+
+        function displayCart() {
+            const cartItems = document.getElementById('cart-items');
+            const cartTotal = document.getElementById('cart-total');
+            cartItems.innerHTML = '';
+            total = 0;
+            cart.forEach((product, index) => {
+                const cartItem = document.createElement('li');
+                cartItem.innerText = `${product.name} - R$ ${product.price}`;
+                const removeButton = document.createElement('button');
+                removeButton.innerText = 'Remover';
+                removeButton.onclick = () => removeFromCart(index);
+                cartItem.appendChild(removeButton);
+                cartItems.appendChild(cartItem);
+                total += parseFloat(product.price);
+            });
+            cartTotal.innerText = total.toFixed(2);
+        }
+
+        function checkout() {
+            const checkoutForm = document.querySelector('.checkout-form');
+            checkoutForm.style.display = 'block';
+        }
+
+        function confirmPurchase() {
+            const name = document.getElementById('customer-name').value;
+            const cpf = document.getElementById('customer-cpf').value;
+            const address = document.getElementById('customer-address').value;
+
+            if (!name || !cpf || !address) {
+                alert('Por favor, preencha todos os campos.');
+                return;
+            }
+
+            alert(`Compra confirmada!\nNome: ${name}\nCPF: ${cpf}\nEndereço: ${address}\nTotal: R$ ${total.toFixed(2)}`);
+
+            cart = [];
+            localStorage.setItem('cart', JSON.stringify(cart));
+            displayCart();
+
+            document.getElementById('customer-name').value = '';
+            document.getElementById('customer-cpf').value = '';
+            document.getElementById('customer-address').value = '';
+
+            const checkoutForm = document.querySelector('.checkout-form');
+            checkoutForm.style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            displayProducts();
+            displayCart();
+        });
+    </script>
+</body>
+</html>
